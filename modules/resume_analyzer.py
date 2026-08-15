@@ -101,59 +101,158 @@ def clean_line(line):
     return line.strip()
 
 
+def clean_repeated_name(text):
+    text = clean_line(text)
+
+    if not text:
+        return text
+
+    words = text.split()
+
+    if len(words) > 1 and len(words) % 2 == 0:
+        half = len(words) // 2
+        first = words[:half]
+        second = words[half:]
+
+        if [
+            word.lower()
+            for word in first
+        ] == [
+            word.lower()
+            for word in second
+        ]:
+            return " ".join(first)
+
+    result = []
+    index = 0
+
+    while index < len(words):
+        word = words[index]
+
+        if (
+            index + 1 < len(words)
+            and word.lower()
+            == words[index + 1].lower()
+        ):
+            result.append(word)
+            index += 2
+        else:
+            result.append(word)
+            index += 1
+
+    text = " ".join(result)
+
+    text = re.sub(
+        r"^(.+?)\1$",
+        r"\1",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    text = re.sub(
+        r"([A-Za-z]{2,})\1",
+        r"\1",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    return clean_line(text)
+
+
+def extract_pdf_text(file_data):
+    with pymupdf.open(
+        stream=file_data,
+        filetype="pdf",
+    ) as pdf:
+        pages = []
+
+        for page in pdf:
+            words = page.get_text(
+                "words",
+                sort=True,
+            )
+
+            lines = []
+            current_line = []
+            current_key = None
+
+            for word in words:
+                x0, y0, x1, y1, text = word[:5]
+                line_key = (
+                    round(y0, 1),
+                    word[5],
+                    word[6],
+                )
+
+                if (
+                    current_key is not None
+                    and line_key != current_key
+                ):
+                    if current_line:
+                        lines.append(
+                            " ".join(current_line)
+                        )
+
+                    current_line = []
+
+                current_line.append(text)
+                current_key = line_key
+
+            if current_line:
+                lines.append(
+                    " ".join(current_line)
+                )
+
+            if lines:
+                pages.append(
+                    "\n".join(lines)
+                )
+
+        text = "\n".join(pages).strip()
+
+    if not text:
+        raise ValueError(
+            "No selectable text found in the PDF."
+        )
+
+    return text
+
+
+def extract_docx_text(file_data):
+    document = Document(
+        io.BytesIO(file_data)
+    )
+
+    paragraphs = []
+
+    for paragraph in document.paragraphs:
+        line = clean_line(
+            paragraph.text
+        )
+
+        if line:
+            paragraphs.append(line)
+
+    text = "\n".join(
+        paragraphs
+    ).strip()
+
+    if not text:
+        raise ValueError(
+            "No text found in the DOCX file."
+        )
+
+    return text
+
+
 def extract_text(file_data, filename):
     filename = filename.lower()
 
     if filename.endswith(".pdf"):
-        with pymupdf.open(
-            stream=file_data,
-            filetype="pdf",
-        ) as pdf:
-            pages = []
-
-            for page in pdf:
-                text = page.get_text(
-                    "text",
-                    sort=True,
-                )
-
-                if text:
-                    pages.append(text)
-
-        text = "\n".join(pages).strip()
-
-        if not text:
-            raise ValueError(
-                "No selectable text found in the PDF."
-            )
-
-        return text
+        return extract_pdf_text(file_data)
 
     if filename.endswith(".docx"):
-        document = Document(
-            io.BytesIO(file_data)
-        )
-
-        paragraphs = []
-
-        for paragraph in document.paragraphs:
-            line = clean_line(
-                paragraph.text
-            )
-
-            if line:
-                paragraphs.append(line)
-
-        text = "\n".join(
-            paragraphs
-        ).strip()
-
-        if not text:
-            raise ValueError(
-                "No text found in the DOCX file."
-            )
-
-        return text
+        return extract_docx_text(file_data)
 
     raise ValueError(
         "Only PDF and DOCX files are supported."
@@ -192,13 +291,16 @@ def find_name(text):
             continue
 
         if any(
-            word in line.lower()
-            for word in ignored
+            item in line.lower()
+            for item in ignored
         ):
             continue
 
-        if 1 <= len(line.split()) <= 5:
-            return line
+        name = clean_repeated_name(line)
+        words = name.split()
+
+        if 1 <= len(words) <= 5:
+            return name
 
     return "Unknown"
 
@@ -276,15 +378,21 @@ def normalize_heading(line):
 def find_section(text, section_name):
     lines = text.splitlines()
 
-    wanted_headings = SECTION_ALIASES.get(
-        section_name,
-        [section_name],
-    )
+    wanted = [
+        item.lower()
+        for item in SECTION_ALIASES.get(
+            section_name,
+            [section_name],
+        )
+    ]
 
     all_headings = []
 
     for aliases in SECTION_ALIASES.values():
-        all_headings.extend(aliases)
+        all_headings.extend(
+            item.lower()
+            for item in aliases
+        )
 
     result = []
     collecting = False
@@ -297,7 +405,7 @@ def find_section(text, section_name):
 
         heading = normalize_heading(line)
 
-        if heading in wanted_headings:
+        if heading in wanted:
             collecting = True
             continue
 

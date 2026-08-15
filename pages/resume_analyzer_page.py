@@ -1,4 +1,16 @@
+import sys
 from pathlib import Path
+
+
+PROJECT_ROOT = Path(
+    __file__
+).resolve().parent.parent
+
+sys.path.insert(
+    0,
+    str(PROJECT_ROOT)
+)
+
 
 from modules.resume_analyzer import analyze_resume
 
@@ -9,6 +21,11 @@ def process_resume(file_path):
     if not resume_path.exists():
         raise FileNotFoundError(
             f"File not found: {resume_path}"
+        )
+
+    if not resume_path.is_file():
+        raise ValueError(
+            f"Path is not a file: {resume_path}"
         )
 
     if resume_path.suffix.lower() not in [
@@ -28,11 +45,21 @@ def process_resume(file_path):
     )
 
 
+def print_section(title, items):
+    print(f"\n{title}:")
+
+    if items:
+        for item in items:
+            print(f"- {item}")
+    else:
+        print("Not found")
+
+
 def main():
     print("===== Resume Analyzer =====")
 
     file_path = input(
-        "Resume file cha full path enter kara: "
+        "Enter the full path of the resume file: "
     ).strip().strip('"')
 
     try:
@@ -47,19 +74,40 @@ def main():
             f"{result['resume_score']}/100"
         )
 
-        print("\nSkills:")
-        if result["skills"]:
-            for skill in result["skills"]:
-                print(f"- {skill}")
-        else:
-            print("Not found")
+        print_section(
+            "Skills",
+            result["skills"],
+        )
 
-        print("\nMissing Items:")
-        if result["missing_items"]:
-            for item in result["missing_items"]:
-                print(f"- {item}")
-        else:
-            print("No missing items")
+        print_section(
+            "Education",
+            result["education"],
+        )
+
+        print_section(
+            "Projects",
+            result["projects"],
+        )
+
+        print_section(
+            "Experience",
+            result["experience"],
+        )
+
+        print_section(
+            "Certifications",
+            result["certifications"],
+        )
+
+        print_section(
+            "Professional Summary",
+            result["summary"],
+        )
+
+        print_section(
+            "Missing Items",
+            result["missing_items"],
+        )
 
     except Exception as error:
         print(f"\nError: {error}")
