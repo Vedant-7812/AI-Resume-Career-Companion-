@@ -1,29 +1,4 @@
 # ============================================================
-# AI CAREER ASSISTANT - MEMBER 4
-# ============================================================
-#
-# MEMBER 4 FEATURES
-#
-# 1. Career Recommendations
-# 2. Skill Recommendations
-# 3. Skill Gap Analysis
-# 4. Project Suggestions
-# 5. Learning Roadmap
-# 6. Resume Improvement Suggestions
-# 7. Interview Preparation
-# 8. AI Career Chatbot
-# 9. Typing Input
-# 10. Voice Input 🎤
-# 11. Voice Output 🔊
-#
-# IMPORTANT:
-# - This module does NOT use Streamlit.
-# - Member 1 will handle the UI.
-# - Member 5 can integrate this module with other modules.
-# ============================================================
-
-
-# ============================================================
 # IMPORTS
 # ============================================================
 
@@ -47,7 +22,7 @@ from langchain.chat_models import init_chat_model
 # Load variables from .env
 load_dotenv()
 
-# Initialize Groq Llama model.
+# Initialize Groq Llama model
 model = init_chat_model(
     "groq:llama-3.1-8b-instant"
 )
@@ -55,10 +30,6 @@ model = init_chat_model(
 
 # ============================================================
 # CAREER PROFILES
-# ============================================================
-#
-# Skills required for different career roles.
-# These are used for career recommendation and skill gap.
 # ============================================================
 
 CAREER_PROFILES = {
@@ -247,8 +218,7 @@ def calculate_match(
         return 0
 
     matched_skills = (
-        user_skills_lower
-        .intersection(
+        user_skills_lower.intersection(
             required_skills_lower
         )
     )
@@ -287,7 +257,6 @@ def recommend_careers(
 
         recommendations[career] = score
 
-    # Highest score first.
     recommendations = dict(
         sorted(
             recommendations.items(),
@@ -354,14 +323,12 @@ def generate_learning_roadmap(
 
     roadmap = []
 
-    # Add missing skills first.
     for skill in missing_skills:
 
         roadmap.append(
             f"Learn {skill}"
         )
 
-    # Practical learning.
     roadmap.append(
         "Build practical projects"
     )
@@ -434,7 +401,7 @@ def get_resume_improvement(
 
     suggestions = []
 
-    # Professional summary.
+    # Professional summary
     if not resume_data.get(
         "summary"
     ):
@@ -443,7 +410,7 @@ def get_resume_improvement(
             "Add a professional summary."
         )
 
-    # Projects.
+    # Projects
     if not resume_data.get(
         "projects"
     ):
@@ -452,7 +419,7 @@ def get_resume_improvement(
             "Add relevant projects."
         )
 
-    # Experience.
+    # Experience
     if not resume_data.get(
         "experience"
     ):
@@ -461,7 +428,7 @@ def get_resume_improvement(
             "Add internship or work experience."
         )
 
-    # Certifications.
+    # Certifications
     if not resume_data.get(
         "certifications"
     ):
@@ -470,7 +437,7 @@ def get_resume_improvement(
             "Add relevant certifications."
         )
 
-    # Skills.
+    # Skills
     if not resume_data.get(
         "skills"
     ):
@@ -479,7 +446,7 @@ def get_resume_improvement(
             "Add relevant technical skills."
         )
 
-    # If everything exists.
+    # If everything exists
     if not suggestions:
 
         suggestions.append(
@@ -499,16 +466,6 @@ def get_user_profile(
 ):
     """
     Extract user skills from Resume Analyzer.
-
-    Expected Resume Analyzer data:
-    - name
-    - email
-    - skills
-    - education
-    - projects
-    - experience
-    - certifications
-    - summary
     """
 
     user_skills = resume_data.get(
@@ -529,18 +486,6 @@ def get_career_analysis(
 ):
     """
     Complete Member 4 analysis.
-
-    Member 5 can call this function and pass
-    Resume Analyzer output.
-
-    Returns:
-    - career recommendations
-    - recommended role
-    - skill gap
-    - learning roadmap
-    - projects
-    - interview questions
-    - resume improvements
     """
 
     user_skills = resume_data.get(
@@ -548,18 +493,12 @@ def get_career_analysis(
         []
     )
 
-    # --------------------------------------------------------
-    # CAREER RECOMMENDATIONS
-    # --------------------------------------------------------
-
+    # Career recommendations
     career_recommendations = recommend_careers(
         user_skills
     )
 
-    # --------------------------------------------------------
-    # SELECT BEST CAREER
-    # --------------------------------------------------------
-
+    # Select best career
     if target_role is None:
 
         if career_recommendations:
@@ -573,44 +512,29 @@ def get_career_analysis(
 
             target_role = "Data Scientist"
 
-    # --------------------------------------------------------
-    # SKILL GAP
-    # --------------------------------------------------------
-
+    # Skill gap
     missing_skills = find_skill_gap(
         user_skills,
         target_role
     )
 
-    # --------------------------------------------------------
-    # ROADMAP
-    # --------------------------------------------------------
-
+    # Roadmap
     roadmap = generate_learning_roadmap(
         user_skills,
         target_role
     )
 
-    # --------------------------------------------------------
-    # PROJECTS
-    # --------------------------------------------------------
-
+    # Projects
     projects = suggest_projects(
         target_role
     )
 
-    # --------------------------------------------------------
-    # INTERVIEW
-    # --------------------------------------------------------
-
+    # Interview
     interview_questions = get_interview_questions(
         target_role
     )
 
-    # --------------------------------------------------------
-    # RESUME IMPROVEMENTS
-    # --------------------------------------------------------
-
+    # Resume improvements
     resume_improvements = get_resume_improvement(
         resume_data
     )
@@ -652,8 +576,6 @@ def listen_to_user(
 ):
     """
     Record user's voice using microphone.
-
-    sounddevice is used instead of PyAudio.
     """
 
     sample_rate = 16000
@@ -666,10 +588,7 @@ def listen_to_user(
 
     try:
 
-        # ----------------------------------------------------
-        # RECORD AUDIO
-        # ----------------------------------------------------
-
+        # Record audio
         recording = sd.rec(
             int(
                 duration
@@ -680,13 +599,10 @@ def listen_to_user(
             dtype="int16"
         )
 
-        # Wait until recording finishes.
+        # Wait until recording finishes
         sd.wait()
 
-        # ----------------------------------------------------
-        # CREATE TEMPORARY WAV FILE
-        # ----------------------------------------------------
-
+        # Create temporary WAV file
         with tempfile.NamedTemporaryFile(
             suffix=".wav",
             delete=False
@@ -696,17 +612,14 @@ def listen_to_user(
                 temp_file.name
             )
 
-        # Save recording.
+        # Save recording
         write(
             temp_audio_path,
             sample_rate,
             recording
         )
 
-        # ----------------------------------------------------
-        # SPEECH RECOGNITION
-        # ----------------------------------------------------
-
+        # Speech recognition
         recognizer = sr.Recognizer()
 
         with sr.AudioFile(
@@ -752,7 +665,7 @@ def listen_to_user(
 
     finally:
 
-        # Delete temporary WAV file.
+        # Delete temporary WAV file
         if (
             temp_audio_path
             and os.path.exists(
@@ -774,50 +687,61 @@ def listen_to_user(
 # VOICE OUTPUT
 # ============================================================
 
-# Create ONE speech engine.
-# Reuse the same engine for every answer.
-speech_engine = pyttsx3.init()
-
-# Speech speed.
-speech_engine.setProperty(
-    "rate",
-    165
-)
-
-# Maximum volume.
-speech_engine.setProperty(
-    "volume",
-    1.0
-)
-
-
 def speak_answer(
     text
 ):
     """
     Convert AI answer into speech.
 
-    This function can be called multiple times.
+    A new speech engine is created for every
+    answer to make continuous voice output
+    more reliable.
     """
+
+    engine = None
 
     try:
 
-        # Stop previous speech if any.
-        speech_engine.stop()
+        # Create a fresh engine
+        engine = pyttsx3.init()
 
-        # Add new answer.
-        speech_engine.say(
+        # Speech speed
+        engine.setProperty(
+            "rate",
+            165
+        )
+
+        # Maximum volume
+        engine.setProperty(
+            "volume",
+            1.0
+        )
+
+        # Speak answer
+        engine.say(
             text
         )
 
-        # Speak.
-        speech_engine.runAndWait()
+        engine.runAndWait()
+
+        # Stop engine
+        engine.stop()
 
     except Exception as error:
 
         print(
             f"❌ Voice output error: {error}"
         )
+
+    finally:
+
+        # Release engine
+        if engine is not None:
+
+            try:
+                del engine
+            except Exception:
+                pass
 
 
 # ============================================================
@@ -840,12 +764,6 @@ def ask_career_ai(
     - Interview
     - Learning roadmap
     - AI/ML questions
-
-    Answer length:
-    - Not too short
-    - Not unnecessarily long
-    - Normally 3-5 sentences
-    - Maximum 5 useful bullets
     """
 
     user_question = (
@@ -988,14 +906,9 @@ def display_career_analysis(
 ):
     """
     Display Member 4 features in terminal.
-
-    This is only for testing.
-    Member 1 will create the actual UI.
     """
 
-    # --------------------------------------------------------
-    # CAREER RECOMMENDATIONS
-    # --------------------------------------------------------
+    # Career recommendations
 
     print(
         "\n========== CAREER RECOMMENDATIONS =========="
@@ -1011,9 +924,7 @@ def display_career_analysis(
             f"{career}: {score}%"
         )
 
-    # --------------------------------------------------------
-    # RECOMMENDED CAREER
-    # --------------------------------------------------------
+    # Recommended career
 
     print(
         "\n========== RECOMMENDED CAREER =========="
@@ -1023,9 +934,7 @@ def display_career_analysis(
         f"🎯 Recommended Role: {target_role}"
     )
 
-    # --------------------------------------------------------
-    # SKILL GAP
-    # --------------------------------------------------------
+    # Skill gap
 
     print(
         "\n========== SKILL GAP =========="
@@ -1050,9 +959,7 @@ def display_career_analysis(
             "✅ No major skill gaps found."
         )
 
-    # --------------------------------------------------------
-    # LEARNING ROADMAP
-    # --------------------------------------------------------
+    # Learning roadmap
 
     print(
         "\n========== LEARNING ROADMAP =========="
@@ -1072,9 +979,7 @@ def display_career_analysis(
             f"{number}. {step}"
         )
 
-    # --------------------------------------------------------
-    # PROJECT SUGGESTIONS
-    # --------------------------------------------------------
+    # Project suggestions
 
     print(
         "\n========== PROJECT SUGGESTIONS =========="
@@ -1090,9 +995,7 @@ def display_career_analysis(
             f"• {project}"
         )
 
-    # --------------------------------------------------------
-    # INTERVIEW PREPARATION
-    # --------------------------------------------------------
+    # Interview preparation
 
     print(
         "\n========== INTERVIEW PREPARATION =========="
@@ -1123,21 +1026,14 @@ def run_chatbot(
     """
     Run continuous AI career chatbot.
 
-    IMPORTANT BEHAVIOR:
-
-    Choice is asked only once for a session.
-
-    Type mode:
+    Type Mode:
         User can ask multiple questions.
 
-    Voice mode:
-        User can ask multiple questions.
+    Voice Mode:
+        User can ask multiple questions continuously.
 
-    Typing "exit" or saying "exit":
-        Current mode ends.
-
-    After exit:
-        User gets the choice menu again.
+    Exit:
+        Type or say exit/quit/bye/close.
 
     Choice 3:
         Completely exits the chatbot.
@@ -1145,13 +1041,6 @@ def run_chatbot(
 
     # ========================================================
     # OUTER LOOP
-    # ========================================================
-    #
-    # This loop controls MODE selection.
-    #
-    # Choice appears again only after user exits
-    # the current conversation.
-    #
     # ========================================================
 
     while True:
@@ -1185,9 +1074,9 @@ def run_chatbot(
             "3. ❌ Exit Program"
         )
 
-        # ----------------------------------------------------
-        # ASK CHOICE ONCE
-        # ----------------------------------------------------
+        # ====================================================
+        # ASK CHOICE
+        # ====================================================
 
         while True:
 
@@ -1220,107 +1109,159 @@ def run_chatbot(
             break
 
         # ====================================================
-        # INNER CHAT LOOP
-        # ====================================================
-        #
-        # IMPORTANT:
-        #
-        # Choice is NOT asked here.
-        #
-        # User can continue asking questions until
-        # they type/say "exit".
-        #
+        # TYPE MODE
         # ====================================================
 
-        while True:
+        if choice == "1":
 
-            # ------------------------------------------------
-            # TYPE MODE
-            # ------------------------------------------------
+            print(
+                "\n⌨️ Type Mode Started!"
+            )
 
-            if choice == "1":
+            print(
+                "Type 'exit' to stop Type Mode."
+            )
+
+            while True:
 
                 question = input(
                     "\n⌨️ You: "
                 ).strip()
 
+                # Empty input
+                if not question:
+                    continue
+
+                # Exit Type Mode
+                if question.lower() in {
+                    "exit",
+                    "quit",
+                    "bye",
+                    "close"
+                }:
+
+                    print(
+                        "\n👋 Type chat ended."
+                    )
+
+                    break
+
+                # Get AI answer
+                answer = ask_career_ai(
+                    question,
+                    user_skills,
+                    target_role
+                )
+
+                # Display answer
+                print(
+                    "\n🤖 AI:"
+                )
+
+                print(
+                    answer
+                )
+
+        # ====================================================
+        # VOICE MODE
+        # ====================================================
+
+        elif choice == "2":
+
+            print(
+                "\n🎤 Voice Mode Started!"
+            )
+
+            print(
+                "Speak your question."
+            )
+
+            print(
+                "Say 'exit' to stop Voice Mode."
+            )
+
             # ------------------------------------------------
-            # VOICE MODE
+            # IMPORTANT:
+            # This loop keeps Voice Mode active.
+            # No input() is used inside this loop.
             # ------------------------------------------------
 
-            else:
+            while True:
+
+                # --------------------------------------------
+                # LISTEN TO USER
+                # --------------------------------------------
 
                 question = listen_to_user(
                     duration=7
                 )
 
+                # --------------------------------------------
+                # IF NOTHING UNDERSTOOD
+                # --------------------------------------------
+
                 if not question:
 
-                    # If speech wasn't understood,
-                    # remain in Voice Mode.
+                    print(
+                        "⚠️ I couldn't understand."
+                    )
+
+                    print(
+                        "🎤 Please try again..."
+                    )
+
                     continue
+
+                # --------------------------------------------
+                # DISPLAY RECOGNIZED QUESTION
+                # --------------------------------------------
 
                 print(
                     f"\n🎤 You: {question}"
                 )
 
-            # ------------------------------------------------
-            # CHECK EXIT
-            # ------------------------------------------------
+                # --------------------------------------------
+                # CHECK VOICE EXIT
+                # --------------------------------------------
 
-            if question.lower().strip() in {
-                "exit",
-                "quit",
-                "bye",
-                "close"
-            }:
+                if question.lower().strip() in {
+                    "exit",
+                    "quit",
+                    "bye",
+                    "close"
+                }:
 
-                print(
-                    "\n👋 Current chat ended."
+                    print(
+                        "\n👋 Voice chat ended."
+                    )
+
+                    break
+
+                # --------------------------------------------
+                # GET AI RESPONSE
+                # --------------------------------------------
+
+                answer = ask_career_ai(
+                    question,
+                    user_skills,
+                    target_role
                 )
 
-                # Break ONLY inner chat loop.
-                #
-                # Outer loop will show choice again.
-                break
+                # --------------------------------------------
+                # DISPLAY AI RESPONSE
+                # --------------------------------------------
 
-            # ------------------------------------------------
-            # GET AI ANSWER
-            # ------------------------------------------------
+                print(
+                    "\n🤖 AI:"
+                )
 
-            answer = ask_career_ai(
-                question,
-                user_skills,
-                target_role
-            )
+                print(
+                    answer
+                )
 
-            # ------------------------------------------------
-            # DISPLAY ANSWER
-            # ------------------------------------------------
-
-            print(
-                "\n🤖 AI:"
-            )
-
-            print(
-                answer
-            )
-
-            # ------------------------------------------------
-            # VOICE OUTPUT
-            # ------------------------------------------------
-            #
-            # ONLY Voice Mode speaks.
-            #
-            # Type Mode:
-            #     Text answer only.
-            #
-            # Voice Mode:
-            #     Text + spoken answer.
-            #
-            # ------------------------------------------------
-
-            if choice == "2":
+                # --------------------------------------------
+                # SPEAK AI RESPONSE
+                # --------------------------------------------
 
                 print(
                     "\n🔊 Speaking..."
@@ -1330,27 +1271,28 @@ def run_chatbot(
                     answer
                 )
 
+                # --------------------------------------------
+                # AUTOMATICALLY LISTEN AGAIN
+                # --------------------------------------------
+
+                print(
+                    "\n🎤 Listening for your next question..."
+                )
+
+                # Loop automatically returns to
+                # listen_to_user()
+                # No typing/input() happens here.
+
 
 # ============================================================
 # MAIN PROGRAM
 # ============================================================
-#
-# This is ONLY for testing Member 4 independently.
-#
-# Later Member 5 can import this file and use:
-#
-#     get_career_analysis(resume_data)
-#
-#     ask_career_ai(question, skills, target_role)
-#
-#     run_chatbot(skills, target_role)
-#
-# Member 1 will handle Streamlit UI.
-# ============================================================
 
 if __name__ == "__main__":
 
-    print("\n")
+    print(
+        "\n"
+    )
 
     print(
         "=" * 60
@@ -1361,22 +1303,11 @@ if __name__ == "__main__":
     )
 
     print(
-        "              MEMBER 4"
-    )
-
-    print(
         "=" * 60
     )
 
     # ========================================================
     # TEMPORARY TEST USER SKILLS
-    # ========================================================
-    #
-    # These are ONLY for testing.
-    #
-    # During final integration, Member 5 can pass
-    # actual skills from Resume Analyzer.
-    #
     # ========================================================
 
     user_skills = [
@@ -1411,10 +1342,6 @@ if __name__ == "__main__":
 
     # ========================================================
     # SAMPLE RESUME DATA
-    # ========================================================
-    #
-    # Used only to test resume improvement feature.
-    #
     # ========================================================
 
     sample_resume_data = {
@@ -1455,20 +1382,4 @@ if __name__ == "__main__":
     run_chatbot(
         user_skills,
         target_role
-    )
-
-    # ========================================================
-    # END
-    # ========================================================
-
-    print(
-        "\n=========================================="
-    )
-
-    print(
-        "Member 4 module finished."
-    )
-
-    print(
-        "=========================================="
     )
